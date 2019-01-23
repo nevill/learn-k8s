@@ -6,3 +6,5 @@
 *.backup
 
 **/builds/*
+terraform/files/*
+terraform/iso/packer_cache

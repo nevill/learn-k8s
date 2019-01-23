@@ -31,6 +31,8 @@ reboot
 bzip2
 curl
 gcc
+ipset
+ipvsadm
 kernel-devel
 make
 net-tools
@@ -41,6 +43,7 @@ perl
 sed
 selinux-policy-devel
 sudo
+yum-utils
 
 # useless
 -*firmware
@@ -66,8 +69,8 @@ sudo
 %post
 
 # disable selinux
-#sed -i 's#SELINUX=enforcing#SELINUX=disable' /etc/selinux/config
-#sed -i 's#SELINUX=permissive#SELINUX=disable' /etc/selinux/config
+# setenforce 0
+# sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # sudo
 echo "%vagrant ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/vagrant
