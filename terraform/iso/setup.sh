@@ -11,13 +11,15 @@ yum-config-manager --enable docker-ce-stable
 yum makecache
 yum install -y docker-ce-18.06.1.ce
 usermod -aG docker vagrant
-systemctl enable docker
 
+mkdir /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {
   "registry-mirrors": ["https://registry.docker-cn.com"]
 }
 EOF
+
+systemctl enable docker && systemctl start docker
 
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -39,8 +41,8 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 sysctl --system
 
-systemctl start docker
 kubeadm config --kubernetes-version 1.13.2 images pull
+docker pull cloudnativelabs/kube-router
 
 # ref https://github.com/box-cutter/centos-vm/
 rm -rf /tmp/*
