@@ -1,5 +1,11 @@
 > Setup a Kubernetes learning environment, optimized in Mainland China (You know it :>).
 
+Build your own box (optional)
+```
+cd iso
+packer build centos7.json
+```
+
 Init a kubernetes cluster via
 1. Ansible
 1. Terraform

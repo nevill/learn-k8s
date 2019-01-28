@@ -61,7 +61,7 @@ resource "tls_self_signed_cert" "k8s" {
 resource "virtualbox_vm" "master" {
   count  = 3
   name   = "${format("master-%02d", count.index + 1)}"
-  image  = "./iso/builds/virtualbox-centos7.box"
+  image  = "../iso/builds/virtualbox-centos7.box"
   cpus   = 2
   memory = "1.0 gib"
 
