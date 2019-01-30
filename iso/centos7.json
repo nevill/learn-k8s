@@ -26,6 +26,7 @@
       "iso_checksum_type": "sha256",
       "iso_urls": [
         "packer_cache/CentOS-7-x86_64-Minimal-1810.iso",
+        "http://isoredirect.centos.org/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso"
         "http://mirrors.163.com/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso"
       ],
       "ssh_username": "vagrant",
