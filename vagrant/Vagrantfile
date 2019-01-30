@@ -51,6 +51,8 @@ sudo kubeadm init --config kubeadm-config.yml
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+kubectl apply -f kuberouter.yml
 SCRIPT
 
 # kubeadm join #{master_ip}:6443 --token 9qmcqb.egwk7yl4zowihycw --discovery-token-unsafe-skip-ca-verification
