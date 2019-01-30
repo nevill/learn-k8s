@@ -1,26 +1,33 @@
 > Setup a Kubernetes learning environment, optimized in Mainland China (You know it :>).
 
-Build your own box (optional)
+## Prerequisite
+* [Vagrant](https://www.vagrantup.com/downloads.html)
+* [Virtuabox](https://www.virtualbox.org)
+* A host with 8+ GiB memory
+
+## Build your own box with guest additions
 ```
 cd iso
-packer build centos7.json
-```
-
-Init a kubernetes cluster via
-1. Ansible
-1. Terraform
-
-## Terraform
-
-In this way, we are using kubeadm to init our cluster.
-
-### building iso
-```
-cd terraform/iso
 packer build centos7.json
 
 # clear your cache before using
 rm -fr ~/.terraform/virtualbox/gold/virtualbox-centos7
+vagrant box remove centos7
+```
+
+## Init a kubernetes cluster via
+1. Vagrant
+1. Terraform
+
+with the help of kubeadm
+
+### Vagrant
+As simple as ```vagrant up```
+
+### Terraform
+```
+cd terraform
+terraform apply -target=null_resource.init_k8s_node
 ```
 
 ## Reference

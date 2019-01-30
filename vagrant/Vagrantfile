@@ -1,0 +1,102 @@
+# -*- mode: ruby -*-
+
+master_ip = "172.28.128.10"
+token = "9qmcqb.egwk7yl4zowihycw"
+
+$enable_ipvs = <<SCRIPT
+echo loading ipvs ...
+modprobe ip_vs
+modprobe ip_vs_sh
+modprobe ip_vs_rr
+modprobe ip_vs_wrr
+modprobe nf_conntrack_ipv4
+SCRIPT
+
+$master_script = <<SCRIPT
+cat << EOF > kubeadm-config.yml
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: InitConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: #{token}
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+nodeRegistration:
+  kubeletExtraArgs:
+    # required because eth0 is used by Vagrant
+    node-ip: #{master_ip}
+localAPIEndpoint:
+  advertiseAddress: #{master_ip}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: ipvs
+---
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+clusterName: kubernetes
+kubernetesVersion: v1.13.2
+controlPlaneEndpoint: #{master_ip}:6443
+networking:
+  dnsDomain: cluster.local
+  serviceSubnet: 10.96.0.0/12
+  podSubnet: "172.20.0.0/16"
+EOF
+
+sudo kubeadm init --config kubeadm-config.yml
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+SCRIPT
+
+# kubeadm join #{master_ip}:6443 --token 9qmcqb.egwk7yl4zowihycw --discovery-token-unsafe-skip-ca-verification
+$node_script = <<SCRIPT
+cat << EOF > kubeadm-config.yml
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: JoinConfiguration
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: #{master_ip}:6443
+    token: #{token}
+    unsafeSkipCAVerification: true
+nodeRegistration:
+  name: %{node_name}
+  kubeletExtraArgs:
+    # required because eth0 is used by Vagrant
+    node-ip: %{node_ip}
+EOF
+
+sudo kubeadm join --config kubeadm-config.yml
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos7"
+  config.vm.box_url = "../iso/builds/virtualbox-centos7.box"
+  config.vm.provider :virtualbox do |vb|
+    vb.memory = 2048
+    vb.cpus = 2
+  end
+  config.vm.provision "shell", inline: $enable_ipvs
+
+  config.vm.define "master-01", primary: true do |master|
+    master.vm.hostname = "master-01"
+    master.vm.provision "file", source: "../terraform/modules/kubernetes/kuberouter.yml", destination: "$HOME/kuberouter.yml"
+    master.vm.provision "shell", privileged: false, inline: $master_script
+    master.vm.network :private_network, ip: master_ip
+  end
+
+  num_of_instance = 2
+  (1..num_of_instance).each do |i|
+    hostname = "node-%02d" % i
+    config.vm.define hostname do |node|
+      node.vm.hostname = hostname
+      ip = "172.28.128.#{i + 200}"
+      node.vm.network :private_network, ip: ip
+      node.vm.provision "shell", privileged: false, inline: $node_script % { node_name: hostname, node_ip: ip}
+    end
+  end
+end

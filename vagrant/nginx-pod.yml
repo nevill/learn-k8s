@@ -6,6 +6,6 @@ metadata:
   name: nginx
 spec:
   containers:
-  - image: nginx
+  - image: nginx:stable-alpine
     name: http
     imagePullPolicy: IfNotPresent

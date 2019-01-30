@@ -1,4 +1,0 @@
-OPTIONS='--selinux-enabled=false --log-driver=journald --signature-verification=false'
-if [ -z "${DOCKER_CERT_PATH}" ]; then
-    DOCKER_CERT_PATH=/etc/docker
-fi
