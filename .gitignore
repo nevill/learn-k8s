@@ -5,6 +5,6 @@
 *.tfstate
 *.backup
 
+iso/packer_cache
 **/builds/*
 terraform/files/*
-terraform/iso/packer_cache
