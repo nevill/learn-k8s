@@ -203,6 +203,10 @@ resource "null_resource" "cluster" {
 }
 
 resource "virtualbox_vm" "node" {
+  depends_on = [
+    "null_resource.cluster",
+  ]
+
   count  = 1
   name   = "${format("node-%02d", count.index + 1)}"
   image  = "./iso/builds/virtualbox-centos7.box"
