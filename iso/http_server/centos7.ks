@@ -4,7 +4,7 @@ url --url https://mirrors.163.com/centos/7/os/x86_64
 lang en_US.UTF-8
 keyboard us
 network --device eth0 --bootproto dhcp
-selinux --disabled
+
 firewall --disabled
 timezone --utc Asia/Shanghai
 # The biosdevname and ifnames options ensure we get "eth0" as our interface
@@ -69,8 +69,8 @@ yum-utils
 %post
 
 # disable selinux
-# setenforce 0
-# sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # sudo
 echo "%vagrant ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/vagrant

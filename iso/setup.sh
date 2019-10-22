@@ -9,13 +9,18 @@ yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce
 yum-config-manager --disable docker-ce-*
 yum-config-manager --enable docker-ce-stable
 yum makecache
-yum install -y docker-ce-18.06.1.ce
+yum install -y docker-ce
 usermod -aG docker vagrant
 
 mkdir /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {
-  "registry-mirrors": ["https://registry.docker-cn.com"]
+  "registry-mirrors": [
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://dockerhub.azk8s.cn",
+    "https://hub-mirror.c.163.com",
+    "https://reg-mirror.qiniu.com"
+  ]
 }
 EOF
 
@@ -29,7 +34,6 @@ enabled=1
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-exclude=kube*
 EOF
 
 yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
@@ -41,7 +45,7 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 sysctl --system
 
-kubeadm config --kubernetes-version 1.13.2 images pull
+kubeadm config --kubernetes-version 1.16.2 images pull
 docker pull cloudnativelabs/kube-router
 
 # ref https://github.com/box-cutter/centos-vm/
