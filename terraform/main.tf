@@ -65,16 +65,17 @@ resource "virtualbox_vm" "master" {
   cpus   = 2
   memory = "1.0 gib"
 
-  network_adapter = {
-    type = "nat"
-  }
-
-  network_adapter = {
+  network_adapter {
     type           = "hostonly"
     host_interface = "vboxnet1"
   }
 
+  network_adapter {
+    type = "nat"
+  }
+
   connection {
+    host     = "${self.network_adapter.0.ipv4_address}"
     type     = "ssh"
     user     = "root"
     password = "vagrant"
@@ -98,13 +99,13 @@ resource "virtualbox_vm" "master" {
 }
 
 data "template_file" "kubeadm_config" {
-  count    = "${length(virtualbox_vm.master.*.name)}"
   template = "${file("./modules/kubernetes/kubeadm-config.yml")}"
 
-  vars {
+  count  = length(virtualbox_vm.master.*.name)
+  vars = {
     token        = "${var.token}"
-    api_endpoint = "${element(virtualbox_vm.master.*.network_adapter.1.ipv4_address, 0)}"
-    host_ip      = "${element(virtualbox_vm.master.*.network_adapter.1.ipv4_address, count.index)}"
+    api_endpoint = "${element(virtualbox_vm.master.*.network_adapter.0.ipv4_address, 0)}"
+    host_ip      = "${element(virtualbox_vm.master.*.network_adapter.0.ipv4_address, count.index)}"
     host_name    = "${element(virtualbox_vm.master.*.name, count.index)}"
 
     state = "new"
@@ -115,7 +116,7 @@ data "template_file" "kubeadm_config" {
         formatlist(
           "%s=https://%s:2380",
           virtualbox_vm.master.*.name,
-          virtualbox_vm.master.*.network_adapter.1.ipv4_address
+          virtualbox_vm.master.*.network_adapter.0.ipv4_address
         )
       )
     }"
@@ -135,7 +136,7 @@ resource "local_file" "kubeadm_config" {
 data "template_file" "init_k8s_master" {
   template = "${file("./modules/kubernetes/init-master.sh")}"
 
-  vars {
+  vars = {
     etcd_ca_crt    = "${tls_self_signed_cert.etcd.cert_pem}"
     etcd_ca_key    = "${tls_private_key.etcd.private_key_pem}"
     sa_private_key = "${tls_private_key.sa.private_key_pem}"
@@ -158,7 +159,7 @@ resource "null_resource" "init_k8s_master" {
     type     = "ssh"
     user     = "root"
     password = "vagrant"
-    host     = "${element(virtualbox_vm.master.*.network_adapter.1.ipv4_address, count.index)}"
+    host     = "${element(virtualbox_vm.master.*.network_adapter.0.ipv4_address, count.index)}"
   }
 
   provisioner "file" {
@@ -184,7 +185,7 @@ resource "null_resource" "cluster" {
     type     = "ssh"
     user     = "root"
     password = "vagrant"
-    host     = "${element(virtualbox_vm.master.*.network_adapter.1.ipv4_address, 0)}"
+    host     = "${element(virtualbox_vm.master.*.network_adapter.0.ipv4_address, 0)}"
   }
 
   provisioner "file" {
@@ -213,16 +214,17 @@ resource "virtualbox_vm" "node" {
   cpus   = 2
   memory = "1.0 gib"
 
-  network_adapter = {
-    type = "nat"
-  }
-
-  network_adapter = {
+  network_adapter {
     type           = "hostonly"
     host_interface = "vboxnet1"
   }
 
+  network_adapter {
+    type = "nat"
+  }
+
   connection {
+    host     = "${self.network_adapter.0.ipv4_address}"
     type     = "ssh"
     user     = "root"
     password = "vagrant"
@@ -250,14 +252,14 @@ resource "null_resource" "init_k8s_node" {
     type     = "ssh"
     user     = "root"
     password = "vagrant"
-    host     = "${element(virtualbox_vm.node.*.network_adapter.1.ipv4_address, 0)}"
+    host     = "${element(virtualbox_vm.node.*.network_adapter.0.ipv4_address, 0)}"
   }
 
   provisioner "remote-exec" {
     on_failure = "continue"
 
     inline = [
-      "kubeadm join ${element(virtualbox_vm.master.*.network_adapter.1.ipv4_address, 0)}:6443 --token ${var.token}  --discovery-token-unsafe-skip-ca-verification",
+      "kubeadm join ${element(virtualbox_vm.master.*.network_adapter.0.ipv4_address, 0)}:6443 --token ${var.token}  --discovery-token-unsafe-skip-ca-verification",
     ]
   }
 }
