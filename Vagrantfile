@@ -16,6 +16,9 @@ Vagrant.configure("2") do |config|
 
       if i == 1
         cfg.vm.provision "file", source: "kubeadm-init.yaml", destination: "$HOME/"
+        memory = 6144
+      else
+        memory = 4096
       end
 
       cfg.vm.network "private_network",
@@ -23,9 +26,9 @@ Vagrant.configure("2") do |config|
         ip: addr
 
       cfg.vm.provider "virtualbox" do |vb|
-        # 2 cores, 6 GiB memory
+        # 2 cores, 4 GiB memory
         vb.cpus = 2
-        vb.memory = "6144"
+        vb.memory = memory
       end
     end
   end
