@@ -8,6 +8,7 @@ running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || t
 if [ "${running}" != 'true' ]; then
   docker run \
     -d --restart=always -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}"\
+    -v $PWD/registry-config.yml:/etc/docker/registry/config.yml\
     registry:2
 fi
 
